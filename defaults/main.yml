@@ -1,0 +1,300 @@
+---
+nifi_version: "1.15.3"
+nifi_distro_file: "nifi-{{ nifi_version }}-bin.tar.gz"
+nifi_distro_url: "http://172.17.0.1/dist/nifi/{{ nifi_version }}/{{ nifi_distro_file }}"
+nifi_user_name: nifi
+nifi_group_name: nifi
+nifi_create_user: yes
+nifi_create_group: yes
+nifi_base_dir: /opt/nifi
+nifi_home_dir: "{{ nifi_base_dir }}/current"
+nifi_run_dir: /run/nifi
+nifi_log_dir: /var/log/nifi
+nifi_data_dir: /var/lib/nifi
+nifi_service_name: nifi.service
+nifi_service_enabled: yes
+nifi_service_state: started
+nifi_limit_nofile: infinity
+nifi_limit_nproc: infinity
+nifi_zookeeper_client_port: 2181
+nifi_zookeeper_leader_port: 2888
+nifi_zookeeper_election_port: 3888
+
+nifi_single_user_identity_provider_username:
+nifi_single_user_identity_provider_password:
+nifi_single_user_identity_provider_password_salt: # https://passlib.readthedocs.io/en/stable/lib/passlib.hash.bcrypt.html#format-algorithm
+
+__nifi_ca_crt: /tmp/root-ca.crt
+__nifi_ca_csr: /tmp/root-ca.csr
+__nifi_ca_key: /tmp/root-ca.key
+__nifi_server_crt: "/tmp/{{ ansible_hostname }}-server.crt"
+__nifi_server_csr: "/tmp/{{ ansible_hostname }}-server.csr"
+__nifi_server_key: "/tmp/{{ ansible_hostname }}-server.key"
+__nifi_security_truststore: "/tmp/{{ nifi_security_truststore | basename }}"
+__nifi_security_keystore: "/tmp/{{ ansible_hostname }}-{{ nifi_security_keystore | basename }}"
+
+# nifi.properties
+nifi_flow_configuration_file: "{{ nifi_conf_dir }}/flow.xml.gz"
+nifi_flow_configuration_archive_enabled: yes
+nifi_flow_configuration_archive_dir: "{{ nifi_conf_dir }}/archive/"
+nifi_flow_configuration_archive_max_time: 30 days
+nifi_flow_configuration_archive_max_storage: 500 MB
+nifi_flow_configuration_archive_max_count:
+nifi_flowcontroller_auto_resume_state: yes
+nifi_flowcontroller_graceful_shutdown_period: 10 sec
+nifi_flowservice_writedelay_interval: 500 ms
+nifi_administrative_yield_duration: 30 sec
+nifi_bored_yield_duration: 10 millis
+nifi_queue_backpressure_count: 10000
+nifi_queue_backpressure_size: 1 GB
+nifi_authorizer_configuration_file: "{{ nifi_conf_dir }}/authorizers.xml"
+nifi_login_identity_provider_configuration_file: "{{ nifi_conf_dir }}/login-identity-providers.xml"
+nifi_templates_directory: "{{ nifi_conf_dir }}/templates"
+nifi_ui_banner_text:
+nifi_ui_autorefresh_interval: 30 sec
+nifi_nar_library_directory: "{{ nifi_home_dir }}/lib"
+nifi_nar_library_autoload_directory: "{{ nifi_home_dir }}/extensions"
+nifi_nar_working_directory: "{{ nifi_data_dir }}/work/nar/"
+nifi_documentation_working_directory: "{{ nifi_data_dir }}/work/docs/components"
+nifi_state_management_configuration_file: "{{ nifi_conf_dir }}/state-management.xml"
+nifi_state_management_provider_local: local-provider
+nifi_state_management_provider_cluster: zk-provider
+nifi_state_management_embedded_zookeeper_start: no
+nifi_state_management_embedded_zookeeper_properties: "{{ nifi_conf_dir }}/zookeeper.properties"
+nifi_database_directory: "{{ nifi_data_dir }}/database_repository"
+nifi_h2_url_append: ;LOCK_TIMEOUT=25000;WRITE_DELAY=0;AUTO_SERVER=FALSE
+nifi_repository_encryption_protocol_version:
+nifi_repository_encryption_key_id:
+nifi_repository_encryption_key_provider:
+nifi_repository_encryption_key_provider_keystore_location:
+nifi_repository_encryption_key_provider_keystore_password:
+nifi_flowfile_repository_implementation: org.apache.nifi.controller.repository.WriteAheadFlowFileRepository
+nifi_flowfile_repository_wal_implementation: org.apache.nifi.wali.SequentialAccessWriteAheadLog
+nifi_flowfile_repository_directory: "{{ nifi_data_dir }}/flowfile_repository"
+nifi_flowfile_repository_checkpoint_interval: 20 secs
+nifi_flowfile_repository_always_sync: no
+nifi_flowfile_repository_retain_orphaned_flowfiles: yes
+nifi_swap_manager_implementation: org.apache.nifi.controller.FileSystemSwapManager
+nifi_queue_swap_threshold: 20000
+nifi_content_repository_implementation: org.apache.nifi.controller.repository.FileSystemRepository
+nifi_content_claim_max_appendable_size: 1 MB
+nifi_content_repository_directory_default: "{{ nifi_data_dir }}/content_repository"
+nifi_content_repository_archive_max_retention_period: 7 days
+nifi_content_repository_archive_max_usage_percentage: 50%
+nifi_content_repository_archive_enabled: yes
+nifi_content_repository_always_sync: no
+nifi_content_viewer_url: ../nifi-content-viewer/
+nifi_provenance_repository_implementation: org.apache.nifi.provenance.WriteAheadProvenanceRepository
+nifi_provenance_repository_directory_default: "{{ nifi_data_dir }}/provenance_repository"
+nifi_provenance_repository_max_storage_time: 30 days
+nifi_provenance_repository_max_storage_size: 10 GB
+nifi_provenance_repository_rollover_time: 10 mins
+nifi_provenance_repository_rollover_size: 100 MB
+nifi_provenance_repository_query_threads: 2
+nifi_provenance_repository_index_threads: 2
+nifi_provenance_repository_compress_on_rollover: yes
+nifi_provenance_repository_always_sync: no
+nifi_provenance_repository_indexed_fields:
+  - EventType
+  - FlowFileUUID
+  - Filename
+  - ProcessorID
+  - Relationship
+nifi_provenance_repository_indexed_attributes:
+nifi_provenance_repository_index_shard_size: 500 MB
+nifi_provenance_repository_max_attribute_length: 65536
+nifi_provenance_repository_concurrent_merge_threads: 2
+nifi_provenance_repository_buffer_size: 100000
+nifi_components_status_repository_implementation: org.apache.nifi.controller.status.history.VolatileComponentStatusRepository
+nifi_components_status_repository_buffer_size: 1440
+nifi_components_status_snapshot_frequency: 1 min
+nifi_status_repository_questdb_persist_node_days: 14
+nifi_status_repository_questdb_persist_component_days: 3
+nifi_status_repository_questdb_persist_location: "{{ nifi_data_dir }}/status_repository"
+nifi_remote_input_host:
+nifi_remote_input_secure: yes
+nifi_remote_input_socket_port:
+nifi_remote_input_http_enabled: yes
+nifi_remote_input_http_transaction_ttl: 30 sec
+nifi_remote_contents_cache_expiration: 30 secs
+nifi_web_http_host:
+nifi_web_http_port:
+nifi_web_http_network_interface_default:
+nifi_web_https_host: 127.0.0.1
+nifi_web_https_port: 8443
+nifi_web_https_network_interface_default:
+nifi_web_jetty_working_directory: "{{ nifi_data_dir }}/work/jetty"
+nifi_web_jetty_threads: 200
+nifi_web_max_header_size: 16 KB
+nifi_web_proxy_context_path:
+nifi_web_proxy_host: []
+nifi_web_max_content_size:
+nifi_web_max_requests_per_second: 30000
+nifi_web_max_access_token_requests_per_second: 25
+nifi_web_request_timeout: 60 secs
+nifi_web_request_ip_whitelist: []
+nifi_web_should_send_server_version: yes
+nifi_web_https_ciphersuites_include: []
+nifi_web_https_ciphersuites_exclude: []
+nifi_sensitive_props_key:
+nifi_sensitive_props_key_protected:
+nifi_sensitive_props_algorithm: NIFI_PBKDF2_AES_GCM_256
+nifi_sensitive_props_additional_keys: []
+nifi_security_autoreload_enabled: no
+nifi_security_autoreload_interval: 10 secs
+nifi_security_keystore: "{{ nifi_conf_dir }}/keystore.p12"
+nifi_security_keystore_type: PKCS12
+nifi_security_keystore_passwd:
+nifi_security_key_passwd:
+nifi_security_truststore: "{{ nifi_conf_dir }}/truststore.p12"
+nifi_security_truststore_type: PKCS12
+nifi_security_truststore_passwd:
+nifi_security_user_authorizer: single-user-authorizer
+nifi_security_allow_anonymous_authentication: no
+nifi_security_user_login_identity_provider: single-user-provider
+nifi_security_user_jws_key_rotation_period: PT1H
+nifi_security_ocsp_responder_url:
+nifi_security_ocsp_responder_certificate:
+nifi_security_user_oidc_discovery_url:
+nifi_security_user_oidc_connect_timeout: 5 secs
+nifi_security_user_oidc_read_timeout: 5 secs
+nifi_security_user_oidc_client_id:
+nifi_security_user_oidc_client_secret:
+nifi_security_user_oidc_preferred_jwsalgorithm:
+nifi_security_user_oidc_additional_scopes: []
+nifi_security_user_oidc_claim_identifying_user:
+nifi_security_user_oidc_fallback_claims_identifying_user:
+nifi_security_user_knox_url:
+nifi_security_user_knox_public_key:
+nifi_security_user_knox_cookie_name: hadoop-jwt
+nifi_security_user_knox_audiences:
+nifi_security_user_saml_idp_metadata_url:
+nifi_security_user_saml_sp_entity_id:
+nifi_security_user_saml_identity_attribute_name:
+nifi_security_user_saml_group_attribute_name:
+nifi_security_user_saml_metadata_signing_enabled: no
+nifi_security_user_saml_request_signing_enabled: no
+nifi_security_user_saml_want_assertions_signed: yes
+nifi_security_user_saml_signature_algorithm: http://www.w3.org/2001/04/xmldsig-more#rsa-sha256
+nifi_security_user_saml_signature_digest_algorithm: http://www.w3.org/2001/04/xmlenc#sha256
+nifi_security_user_saml_message_logging_enabled: no
+nifi_security_user_saml_authentication_expiration: 12 hours
+nifi_security_user_saml_single_logout_enabled: no
+nifi_security_user_saml_http_client_truststore_strategy: JDK
+nifi_security_user_saml_http_client_connect_timeout: 30 secs
+nifi_security_user_saml_http_client_read_timeout: 30 secs
+nifi_cluster_protocol_heartbeat_interval: 5 sec
+nifi_cluster_protocol_heartbeat_missable_max: 8
+nifi_cluster_protocol_is_secure: no
+nifi_cluster_is_node: no
+nifi_cluster_node_address:
+nifi_cluster_node_protocol_port:
+nifi_cluster_node_protocol_max_threads: 50
+nifi_cluster_node_event_history_size: 25
+nifi_cluster_node_connection_timeout: 5 sec
+nifi_cluster_node_read_timeout: 5 sec
+nifi_cluster_node_max_concurrent_requests: 100
+nifi_cluster_firewall_file:
+nifi_cluster_flow_election_max_wait_time: 5 mins
+nifi_cluster_flow_election_max_candidates:
+nifi_cluster_load_balance_host:
+nifi_cluster_load_balance_port: 6342
+nifi_cluster_load_balance_connections_per_node: 1
+nifi_cluster_load_balance_max_thread_count: 8
+nifi_cluster_load_balance_comms_timeout: 30 sec
+nifi_zookeeper_connect_string:
+nifi_zookeeper_connect_timeout: 10 secs
+nifi_zookeeper_session_timeout: 10 secs
+nifi_zookeeper_root_node: /nifi
+nifi_zookeeper_client_secure: no
+nifi_zookeeper_security_keystore:
+nifi_zookeeper_security_keystore_type:
+nifi_zookeeper_security_keystore_passwd:
+nifi_zookeeper_security_truststore:
+nifi_zookeeper_security_truststore_type:
+nifi_zookeeper_security_truststore_passwd:
+nifi_zookeeper_jute_maxbuffer:
+nifi_zookeeper_auth_type:
+nifi_zookeeper_kerberos_remove_host_from_principal: no
+nifi_zookeeper_kerberos_remove_realm_from_principal: no
+nifi_kerberos_krb5_file:
+nifi_kerberos_service_principal:
+nifi_kerberos_service_keytab_location:
+nifi_kerberos_spnego_principal:
+nifi_kerberos_spnego_keytab_location:
+nifi_kerberos_spnego_authentication_expiration: 12 hours
+nifi_variable_registry_properties:
+nifi_analytics_predict_enabled: no
+nifi_analytics_predict_interval: 3 mins
+nifi_analytics_query_interval: 5 mins
+nifi_analytics_connection_model_implementation: org.apache.nifi.controller.status.analytics.models.OrdinaryLeastSquares
+nifi_analytics_connection_model_score_name: rSquared
+nifi_analytics_connection_model_score_threshold: .90
+nifi_monitor_long_running_task_schedule:
+nifi_monitor_long_running_task_threshold:
+nifi_diagnostics_on_shutdown_enabled: no
+nifi_diagnostics_on_shutdown_verbose: no
+nifi_diagnostics_on_shutdown_directory: "{{ nifi_home_dir }}/diagnostics"
+nifi_diagnostics_on_shutdown_max_filecount: 10
+nifi_diagnostics_on_shutdown_max_directory_size: 10 MB
+
+# zookeeper.properties
+nifi_zookeeper_init_limit: 10
+nifi_zookeeper_autopurge_purge_interval: 24
+nifi_zookeeper_autopurge_snap_retain_count: 30
+nifi_zookeeper_sync_limit: 5
+nifi_zookeeper_tick_time: 2000
+nifi_zookeeper_data_dir: "{{ nifi_data_dir }}/state/zookeeper"
+
+# bootstrap.conf
+nifi_java: java
+nifi_java_xms: 512m
+nifi_java_xmx: 512m
+nifi_java_args:
+  - "-Dorg.apache.jasper.compiler.disablejsr199=true"
+  - "-Xms{{ nifi_java_xms }}"
+  - "-Xmx{{ nifi_java_xmx }}"
+  - "-Djava.net.preferIPv4Stack=true"
+  - "-Dsun.net.http.allowRestrictedHeaders=true"
+  - "-Djava.protocol.handler.pkgs=sun.net.www.protocol"
+  - "-Djava.awt.headless=true"
+  - "-Djava.security.egd=file:/dev/urandom"
+  - "-Djavax.security.auth.useSubjectCredsOnly=true"
+  - "-Dzookeeper.admin.enableServer=false"
+  - "-Dorg.xerial.snappy.tempdir=/var/tmp/"
+nifi_java_arg_curator_supress_excessive_logs: -Dcurator-log-only-first-connection-issue-as-error-level=true
+nifi_run_as:
+nifi_preserve_environment: no
+nifi_lib_dir: "{{ nifi_home_dir }}/lib"
+nifi_conf_dir: /etc/nifi
+nifi_graceful_shutdown_seconds: 20
+nifi_bootstrap_sensitive_key:
+nifi_bootstrap_protection_hashicorp_vault_conf: 
+nifi_bootstrap_protection_aws_conf:
+nifi_bootstrap_protection_azure_keyvault_conf:
+nifi_bootstrap_protection_gcp_kms_conf:
+nifi_notification_services_file: "{{ nifi_conf_dir }}/bootstrap-notification-services.xml"
+nifi_notification_max_attempts: 5
+
+# state-management.xml
+nifi_state_management_provider_local_id: local-provider
+nifi_state_management_provider_local_class: org.apache.nifi.controller.state.providers.local.WriteAheadLocalStateProvider
+nifi_state_management_provider_local_properties:
+  Directory: "{{ nifi_data_dir }}/state/local"
+  Always Sync: "false"
+  Partitions: 16
+  Checkpoint Interval: 2 mins
+nifi_state_management_provider_cluster_id: zk-provider
+nifi_state_management_provider_cluster_class: org.apache.nifi.controller.state.providers.zookeeper.ZooKeeperStateProvider
+nifi_state_management_provider_cluster_properties:
+  Connect String: "{{ nifi_zookeeper_connect_string }}"
+  Root Node: /nifi
+  Session Timeout: 10 seconds
+  Access Control: Open
+
+# login-identity-providers.xml
+nifi_login_identity_provider_identifier: single-user-provider
+nifi_login_identity_provider_class: org.apache.nifi.authentication.single.user.SingleUserLoginIdentityProvider
+nifi_login_identity_provider_properties:
+  Username: 
+  Password: 

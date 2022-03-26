@@ -1,0 +1,17 @@
+---
+galaxy_info:
+  author: Denis Borisov
+  namespace: dborisov
+  role_name: nifi
+  description: Ansible role for installing and configuring Apache Ni-Fi
+  license: MIT
+  min_ansible_version: 2.9
+  platforms:
+    - name: EL
+      versions:
+        - 7
+        - 8
+  galaxy_tags:
+    - nifi
+
+dependencies: []

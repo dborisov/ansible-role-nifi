@@ -1,0 +1,16 @@
+---
+- name: Ensure {{ nifi_zookeeper_data_dir }} directory exists
+  file:
+    dest: "{{ nifi_zookeeper_data_dir }}"
+    owner: "{{ nifi_user_name }}"
+    group: "{{ nifi_group_name }}"
+    state: directory
+    mode: '755'
+
+- name: Ensure zookeeper myid is set
+  copy:
+    dest: "{{ nifi_zookeeper_data_dir }}/myid"
+    content: "{{ nifi_zookeeper_id }}"
+    owner: "{{ nifi_user_name }}"
+    group: "{{ nifi_group_name }}"
+    mode: '0644'

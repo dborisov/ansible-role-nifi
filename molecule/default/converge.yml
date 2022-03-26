@@ -1,0 +1,33 @@
+---
+- name: Converge
+  hosts: all
+  roles:
+    - role: dborisov.nifi
+      nifi_version: "{{ lookup('env', 'NIFI_VERSION') }}"
+      nifi_web_https_host: "{{ ansible_hostname }}"
+      nifi_security_keystore: "{{ nifi_conf_dir }}/keystore.p12"
+      nifi_security_keystore_type: PKCS12
+      nifi_security_keystore_passwd: "MustBeVaultEncrypted"
+      nifi_security_truststore: "{{ nifi_conf_dir }}/truststore.p12"
+      nifi_security_truststore_type: PKCS12
+      nifi_security_truststore_passwd: "MustBeVaultEncrypted"
+      nifi_sensitive_props_key: "MustBeVaultEncrypted"
+      nifi_state_management_embedded_zookeeper_start: yes
+      nifi_zookeeper_connect_string: nifi-1:2181,nifi-2:2181,nifi-3:2181
+      nifi_cluster_is_node: yes
+      nifi_cluster_node_address: "{{ ansible_hostname }}"
+      nifi_cluster_node_protocol_port: 11443
+      nifi_cluster_protocol_is_secure: yes
+      nifi_cluster_flow_election_max_candidates: 3
+      nifi_remote_input_host: "{{ ansible_hostname }}"
+      nifi_remote_input_socket_port: 10443
+      nifi_single_user_identity_provider_username: admin
+      nifi_single_user_identity_provider_password: "MustBeVaultEncrypted"
+      nifi_single_user_identity_provider_password_salt: "oMustBeExactly22CharsO"
+      nifi_login_identity_provider_properties:
+        Username: "{{ nifi_single_user_identity_provider_username }}"
+        Password: "{{ nifi_single_user_identity_provider_password | password_hash('bcrypt', nifi_single_user_identity_provider_password_salt) }}"
+      nifi_web_proxy_host:
+        - localhost:8443
+        - localhost:8444
+        - localhost:8445

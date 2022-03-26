@@ -1,0 +1,142 @@
+---
+- name: Ensure the truststore exists
+  stat:
+    path: "{{ nifi_security_truststore }}"
+  register: truststore
+
+- block:
+  - name: Generate CA key
+    openssl_privatekey:
+      path: "{{ __nifi_ca_key }}"
+    run_once: yes
+    delegate_to: localhost
+
+  - name: Generate CA csr
+    openssl_csr:
+      path: "{{ __nifi_ca_csr }}"
+      privatekey_path: "{{ __nifi_ca_key }}"
+      common_name: ca
+      basicConstraints:
+        - 'CA:TRUE'
+        - 'pathlen:3'
+      keyUsage:
+        - digitalSignature
+        - keyCertSign
+    run_once: yes
+    delegate_to: localhost
+
+  - name: Generate CA certificate
+    openssl_certificate:
+      path: "{{ __nifi_ca_crt }}"
+      csr_path: "{{ __nifi_ca_csr }}"
+      privatekey_path: "{{ __nifi_ca_key }}"
+      provider: selfsigned
+    run_once: yes
+    delegate_to: localhost
+
+  - name: Generate PKCS12 truststore
+    openssl_pkcs12:
+      action: export
+      path: "{{ __nifi_security_truststore }}"
+      friendly_name: ca
+      certificate_path: "{{ __nifi_ca_crt }}"
+      passphrase: "{{ nifi_security_truststore_passwd }}"
+    run_once: yes
+    delegate_to: localhost
+    when: nifi_security_truststore_type == 'PKCS12'
+
+  - name: Generate JKS truststore
+    java_keystore:
+      name: ca
+      certificate: "{{ lookup('file', __nifi_ca_crt) }}"
+      private_key: "{{ lookup('file', __nifi_ca_key) }}"
+      password: "{{ nifi_security_truststore_passwd }}"
+      dest: "{{ __nifi_security_truststore }}"
+    run_once: yes
+    delegate_to: localhost
+    when: nifi_security_truststore_type == 'JKS'
+
+  - name: Copy truststore
+    copy:
+      src: "{{ __nifi_security_truststore }}"
+      dest: "{{ nifi_security_truststore }}"
+      owner: "{{ nifi_user_name }}"
+      group: "{{ nifi_group_name }}"
+      mode: '0640'
+
+  when: not truststore.stat.exists
+
+- name: Ensure the keystore exists
+  stat:
+    path: "{{ nifi_security_keystore }}"
+  register: keystore
+
+- block:
+  - name: Generate nifi server key
+    openssl_privatekey:
+      path: "{{ __nifi_server_key }}"
+      passphrase: "{{ nifi_security_key_passwd }}"
+      cipher: auto
+    delegate_to: localhost
+
+  - name: Generate nifi server csr
+    openssl_csr:
+      path: "{{ __nifi_server_csr }}"
+      privatekey_path: "{{ __nifi_server_key }}"
+      privatekey_passphrase: "{{ nifi_security_key_passwd }}"
+      common_name: "{{ ansible_hostname }}"
+      extendedKeyUsage:
+        - serverAuth
+        - clientAuth
+      subject_alt_name:
+        - "DNS:{{ ansible_hostname }}"
+        - "DNS:{{ ansible_fqdn }}"
+    delegate_to: localhost
+
+  - name: Generate nifi server certificate
+    openssl_certificate:
+      path: "{{ __nifi_server_crt }}"
+      privatekey_path: "{{ __nifi_server_key }}"
+      privatekey_passphrase: "{{ nifi_security_key_passwd }}"
+      csr_path: "{{ __nifi_server_csr }}"
+      provider: ownca
+      ownca_path: "{{ __nifi_ca_crt }}"
+      ownca_privatekey_path: "{{ __nifi_ca_key }}"
+    delegate_to: localhost
+
+  - name: Generate PKCS12 keystore
+    openssl_pkcs12:
+      action: export
+      path: "{{ __nifi_security_keystore }}"
+      friendly_name: "{{ ansible_hostname }}"
+      privatekey_path: "{{ __nifi_server_key }}"
+      privatekey_passphrase: "{{ nifi_security_key_passwd }}"
+      certificate_path: "{{ __nifi_server_crt }}"
+      passphrase: "{{ nifi_security_keystore_passwd }}"
+      state: present
+    delegate_to: localhost
+    when: nifi_security_keystore_type == 'PKCS12'
+
+  - name: Generate JKS keystore
+    java_keystore:
+      name: "{{ ansible_hostname }}"
+      certificate: "{{ lookup('file', __nifi_server_crt) }}"
+      private_key: "{{ lookup('file', __nifi_server_key) }}"
+      password: "{{ nifi_security_keystore_passwd }}"
+      dest: "{{ __nifi_security_keystore }}"
+    delegate_to: localhost
+    throttle: 1 # Workaround for Ansible < 3
+                # Don't run this module in parallel on single host
+                # It overwrites the same tmp file for all parallel tasks, which leads to incorrect keystore content
+                # https://github.com/ansible/ansible/blob/stable-2.9/lib/ansible/modules/system/java_keystore.py#L199
+    when: nifi_security_keystore_type == 'JKS'
+
+  - name: Copy keystore
+    copy:
+      src: "{{ __nifi_security_keystore }}"
+      dest: "{{ nifi_security_keystore }}"
+      owner: "{{ nifi_user_name }}"
+      group: "{{ nifi_group_name }}"
+      mode: '0640'
+
+  when: not keystore.stat.exists

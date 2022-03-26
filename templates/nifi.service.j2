@@ -1,0 +1,20 @@
+[Unit]
+Description=Apache NiFi
+After=network.target
+
+[Service]
+RuntimeDirectory={{ nifi_run_dir.split('/') | last }}
+Environment="JAVA_HOME=/usr/lib/jvm/jre"
+Environment="NIFI_OVERRIDE_NIFIENV=true"
+Environment="NIFI_PID_DIR={{ nifi_run_dir }}"
+Environment="NIFI_LOG_DIR={{ nifi_log_dir }}"
+Type=forking
+User={{ nifi_user_name }}
+Group={{ nifi_group_name }}
+ExecStart={{ nifi_home_dir }}/bin/nifi.sh start
+ExecStop={{ nifi_home_dir }}/bin/nifi.sh stop
+LimitNOFILE={{ nifi_limit_nofile }}
+LimitNPROC={{ nifi_limit_nproc }}
+
+[Install]
+WantedBy=multi-user.target

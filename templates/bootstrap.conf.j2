@@ -1,0 +1,76 @@
+#
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+# Java command to use when running NiFi
+java={{ nifi_java }}
+
+# Username to use when running NiFi. This value will be ignored on Windows.
+run.as={{ nifi_run_as }}
+
+# Preserve shell environment while runnning as "run.as" user
+preserve.environment={{ nifi_preserve_environment | ternary('true', 'false') }}
+
+# Configure where NiFi's lib and conf directories live
+lib.dir={{ nifi_lib_dir }}
+conf.dir={{ nifi_conf_dir }}
+
+# How long to wait after telling NiFi to shutdown before explicitly killing the Process
+graceful.shutdown.seconds={{ nifi_graceful_shutdown_seconds }}
+
+{% for arg in nifi_java_args %}
+java.arg.{{ loop.index }}={{ arg }}
+{% endfor %}
+
+# Root key in hexadecimal format for encrypted sensitive configuration values
+nifi.bootstrap.sensitive.key={{ nifi_bootstrap_sensitive_key }}
+
+# Sensitive Property Provider configuration
+
+# HashiCorp Vault Sensitive Property Providers
+nifi.bootstrap.protection.hashicorp.vault.conf={{ nifi_bootstrap_protection_hashicorp_vault_conf }}
+
+# AWS Sensitive Property Providers
+nifi.bootstrap.protection.aws.conf={{ nifi_bootstrap_protection_aws_conf }}
+
+# Azure Key Vault Sensitive Property Providers
+nifi.bootstrap.protection.azure.keyvault.conf={{ nifi_bootstrap_protection_azure_keyvault_conf }}
+
+# GCP KMS Sensitive Property Providers
+nifi.bootstrap.protection.gcp.kms.conf={{ nifi_bootstrap_protection_gcp_kms_conf }}
+
+###
+# Notification Services for notifying interested parties when NiFi is stopped, started, dies
+###
+
+# XML File that contains the definitions of the notification services
+notification.services.file={{ nifi_notification_services_file }}
+
+# In the case that we are unable to send a notification for an event, how many times should we retry?
+notification.max.attempts={{ nifi_notification_max_attempts }}
+
+# Comma-separated list of identifiers that are present in the notification.services.file; which services should be used to notify when NiFi is started?
+#nifi.start.notification.services=email-notification
+
+# Comma-separated list of identifiers that are present in the notification.services.file; which services should be used to notify when NiFi is stopped?
+#nifi.stop.notification.services=email-notification
+
+# Comma-separated list of identifiers that are present in the notification.services.file; which services should be used to notify when NiFi dies?
+#nifi.dead.notification.services=email-notification
+
+# The first curator connection issue is logged as ERROR, for example when NiFi cannot connect to one of the Zookeeper nodes.
+# Additional connection issues are logged as DEBUG until the connection is restored.
+java.arg.curator.supress.excessive.logs={{ nifi_java_arg_curator_supress_excessive_logs }}

@@ -1,0 +1,124 @@
+---
+- name: Ensure {{ nifi_group_name }} group exists
+  group:
+    name: "{{ nifi_group_name }}"
+    system: yes
+  when: nifi_create_group
+
+- name: Ensure {{ nifi_user_name }} user exists
+  user:
+    name: "{{ nifi_user_name }}"
+    group: "{{ nifi_group_name }}"
+    createhome: no
+    system: yes
+  when: nifi_create_user
+
+- name: Ensure {{ nifi_base_dir }} directory exists
+  file:
+    path: "{{ nifi_base_dir }}"
+    state: directory
+    owner: "{{ nifi_user_name }}"
+    group: "{{ nifi_group_name }}"
+    mode: "0755"
+
+- name: Download Ni-Fi {{ nifi_version }} distro
+  get_url:
+    url: "{{ nifi_distro_url }}"
+    dest: "{{ nifi_base_dir }}/{{ nifi_distro_file }}"
+    owner: "{{ nifi_user_name }}"
+    group: "{{ nifi_group_name }}"
+
+- name: Unarchive Ni-Fi {{ nifi_version }} distro
+  unarchive:
+    src: "{{ nifi_base_dir }}/{{ nifi_distro_file }}"
+    dest: "{{ nifi_base_dir }}"
+    remote_src: yes
+    creates: "{{ nifi_base_dir }}/nifi-{{ nifi_version }}"
+    owner: "{{ nifi_user_name }}"
+    group: "{{ nifi_group_name }}"
+
+- name: Ensure required directories exist
+  file:
+    dest: "{{ item }}"
+    owner: "{{ nifi_user_name }}"
+    group: "{{ nifi_group_name }}"
+    state: directory
+    recurse: yes
+  with_items:
+    - "{{ nifi_log_dir }}"
+    - "{{ nifi_data_dir }}"
+
+- name: Ensure required symlinks exist
+  file:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    state: link
+    owner: "{{ nifi_user_name }}"
+    group: "{{ nifi_group_name }}"
+  with_items:
+    - src: "{{ nifi_base_dir }}/nifi-{{ nifi_version }}"
+      dest: "{{ nifi_home_dir }}"
+    - src: "{{ nifi_home_dir }}/conf"
+      dest: "{{ nifi_conf_dir }}"
+
+- name: Ensure PATH variable contains {{ nifi_home_dir }}/bin directory
+  copy:
+    dest: "/etc/profile.d/nifi.sh"
+    content: "export PATH=$PATH:{{ nifi_home_dir }}/bin"
+    owner: "{{ nifi_user_name }}"
+    group: "{{ nifi_group_name }}"
+    mode: '0644'
+
+- name: Ensure sysctl configuration is set
+  sysctl:
+    name: "{{ item.name }}"
+    value: "{{ item.value }}"
+    sysctl_file: /etc/sysctl.d/nifi.conf
+  with_items:
+    - name: vm.swappiness
+      value: 0
+    - name: net.netfilter.nf_conntrack_tcp_timeout_time_wait
+      value: 1
+    - name: net.ipv4.ip_local_port_range
+      value: 10000 65000
+
+- name: Ensure required config files are present
+  template:
+    src: "{{ item }}.j2"
+    dest: "{{ nifi_conf_dir }}/{{ item }}"
+    owner: "{{ nifi_user_name }}"
+    group: "{{ nifi_group_name }}"
+    mode: '0640'
+  notify:
+    - Restart nifi service
+  with_items:
+    - nifi.properties
+    - zookeeper.properties
+    - bootstrap.conf
+    - state-management.xml
+    - login-identity-providers.xml
+
+- include: ssl.yml
+
+- include: zookeeper.yml
+  when: nifi_state_management_embedded_zookeeper_start
+
+- name: Ensure Ni-Fi systemd unit is present
+  template:
+    src: "{{ nifi_service_name }}.j2"
+    dest: "/etc/systemd/system/{{ nifi_service_name }}"
+    owner: "{{ nifi_user_name }}"
+    group: "{{ nifi_group_name }}"
+    mode: '0644'
+
+- name: Ensure Ni-Fi service is {{ nifi_service_enabled | ternary('enabled', 'disabled') }} on boot
+  systemd:
+    name: "{{ nifi_service_name }}"
+    enabled: "{{ nifi_service_enabled }}"
+    daemon_reload: yes
+
+- name: Ensure Ni-Fi service is {{ nifi_service_state }}
+  systemd:
+    name: "{{ nifi_service_name }}"
+    state: "{{ nifi_service_state }}"
+    daemon_reload: yes

@@ -1,0 +1,7 @@
+---
+- name: Restart nifi service
+  systemd:
+    name: "{{ nifi_service_name }}"
+    state: restarted
+    daemon_reload: yes
+  when: nifi_service_state == 'started'
